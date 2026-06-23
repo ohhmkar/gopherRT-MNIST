@@ -38,7 +38,11 @@ ehthumbs.db
 Thumbs.db
 
 # ONNX model files (can be large, regenerate or download as needed)
-# mnist.onnx
+mnist.onnx
+
+# data files
+/data
+
 
 # Temporary files
 tmp/
