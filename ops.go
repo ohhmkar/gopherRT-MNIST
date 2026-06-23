@@ -9,12 +9,11 @@ func matMul(a, b *Tensor) *Tensor {
 
 	data := make([]float32, m*n)
 	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			var sum float32
-			for l := 0; l < k; l++ {
-				sum += a.Data[i*k+l] * b.Data[l*n+j]
+		for l := 0; l < k; l++ {
+			aVal := a.Data[i*k+l]
+			for j := 0; j < n; j++ {
+				data[i*n+j] += aVal * b.Data[l*n+j]
 			}
-			data[i*n+j] = sum
 		}
 	}
 	return &Tensor{Shape: []int{m, n}, Data: data}
@@ -28,6 +27,27 @@ func add(a, b *Tensor) *Tensor {
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			data[i*n+j] = a.Data[i*n+j] + b.Data[j]
+		}
+	}
+	return &Tensor{Shape: []int{m, n}, Data: data}
+}
+
+func Dense(input, weight, bias *Tensor) *Tensor {
+	m := input.Shape[0]
+	k := input.Shape[1]
+	n := weight.Shape[1]
+	data := make([]float32, m*n)
+	for i := 0; i < m; i++ {
+		for l := 0; l < k; l++ {
+			aVal := input.Data[i*k+l]
+			for j := 0; j < n; j++ {
+				data[i*n+j] += aVal * weight.Data[l*n+j]
+			}
+		}
+	}
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+			data[i*n+j] += bias.Data[j]
 		}
 	}
 	return &Tensor{Shape: []int{m, n}, Data: data}
@@ -62,4 +82,14 @@ func softmax(a *Tensor) *Tensor {
 		data[i] /= sum
 	}
 	return &Tensor{Shape: a.Shape, Data: data}
+}
+
+func argmax(data []float32) int {
+	idx := 0
+	for i, v := range data {
+		if v > data[idx] {
+			idx = i
+		}
+	}
+	return idx
 }
