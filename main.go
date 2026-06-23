@@ -16,13 +16,11 @@ func main() {
 		fmt.Println(err)
 	}
 
-	// weights := make(map[string][]float32)
-	// bias := make(map[string][]float32)
-
 	for _, init := range model.GetGraph().GetInitializer() {
 		data, _ := tensorToFloats(init)
 		name := init.GetName()
 
 		fmt.Printf("%s shape = %v len=%d\n", name, init.GetDims(), len(data))
 	}
+
 }
