@@ -26,9 +26,6 @@ go.work
 # macOS
 .DS_Store
 
-# MNIST dataset (large, downloaded on demand)
-/data
-
 # Temporary files
 tmp/
 temp/

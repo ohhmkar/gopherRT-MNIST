@@ -13,10 +13,6 @@ import (
 )
 
 func main() {
-	if err := ensureDataset("data"); err != nil {
-		log.Fatalf("dataset: %v", err)
-	}
-
 	modelData, err := os.ReadFile("mnist.onnx")
 	if err != nil {
 		log.Fatalf("reading model: %v", err)
