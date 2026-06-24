@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"sync"
@@ -12,17 +13,25 @@ import (
 )
 
 func main() {
-	data, _ := os.ReadFile("mnist.onnx")
-	model := &onnx.ModelProto{}
-	err := proto.Unmarshal(data, model)
-	if err != nil {
-		fmt.Println(err)
+	if err := ensureDataset("data"); err != nil {
+		log.Fatalf("dataset: %v", err)
 	}
 
-	//populating value map with initializers
+	modelData, err := os.ReadFile("mnist.onnx")
+	if err != nil {
+		log.Fatalf("reading model: %v", err)
+	}
+	model := &onnx.ModelProto{}
+	if err := proto.Unmarshal(modelData, model); err != nil {
+		log.Fatalf("parsing model: %v", err)
+	}
+
 	values := make(map[string]*Tensor)
 	for _, init := range model.GetGraph().GetInitializer() {
-		floats, _ := tensorToFloats(init)
+		floats, err := tensorToFloats(init)
+		if err != nil {
+			log.Fatalf("reading initializer %s: %v", init.GetName(), err)
+		}
 		dims := init.GetDims()
 		shape := make([]int, len(dims))
 		for i, d := range dims {
@@ -31,12 +40,14 @@ func main() {
 		values[init.GetName()] = &Tensor{Shape: shape, Data: floats}
 	}
 
-	//Input
-	images, _ := loadImages("data/t10k-images-idx3-ubyte")
-	labels, _ := loadLabels("data/t10k-labels-idx1-ubyte")
-
-	numCPU := runtime.NumCPU()
-	chunkSize := (len(images) + numCPU - 1) / numCPU
+	images, err := loadImages("data/t10k-images-idx3-ubyte")
+	if err != nil {
+		log.Fatalf("loading images: %v", err)
+	}
+	labels, err := loadLabels("data/t10k-labels-idx1-ubyte")
+	if err != nil {
+		log.Fatalf("loading labels: %v", err)
+	}
 
 	w1 := values["StatefulPartitionedCall/sequential_1/dense_1/Cast/ReadVariableOp:0"]
 	b1 := values["StatefulPartitionedCall/sequential_1/dense_1/BiasAdd/ReadVariableOp:0"]
@@ -44,6 +55,9 @@ func main() {
 	b2 := values["StatefulPartitionedCall/sequential_1/dense_1_2/BiasAdd/ReadVariableOp:0"]
 	w3 := values["StatefulPartitionedCall/sequential_1/dense_2_1/Cast/ReadVariableOp:0"]
 	b3 := values["StatefulPartitionedCall/sequential_1/dense_2_1/BiasAdd/ReadVariableOp:0"]
+
+	numCPU := runtime.NumCPU()
+	chunkSize := (len(images) + numCPU - 1) / numCPU
 
 	start := time.Now()
 	var mu sync.Mutex
@@ -62,9 +76,9 @@ func main() {
 			localCorrect := 0
 			for i := lo; i < hi; i++ {
 				input := &Tensor{Shape: []int{1, 784}, Data: images[i]}
-				h1 := relu(Dense(input, w1, b1))
-				h2 := relu(Dense(h1, w2, b2))
-				out := softmax(Dense(h2, w3, b3))
+				h1 := relu(dense(input, w1, b1))
+				h2 := relu(dense(h1, w2, b2))
+				out := softmax(dense(h2, w3, b3))
 				if argmax(out.Data) == int(labels[i]) {
 					localCorrect++
 				}
@@ -78,9 +92,8 @@ func main() {
 
 	end := time.Since(start)
 	n := len(images)
-	fmt.Printf("Correct: %d\n", correct)
-	fmt.Printf("Images processed: %d\n", n)
+	fmt.Printf("Correct:  %d\n", correct)
+	fmt.Printf("Total:    %d\n", n)
 	fmt.Printf("Accuracy: %.3f\n", float64(correct)/float64(n))
-	fmt.Printf("Time taken: %d ms\n", (end.Milliseconds()))
-	fmt.Printf("Time taken per image: %.4f ms\n", float64(end.Milliseconds())/float64(n))
+	fmt.Printf("Time:     %d ms (%6.4f ms / image)\n", end.Milliseconds(), float64(end.Milliseconds())/float64(n))
 }

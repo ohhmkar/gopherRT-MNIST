@@ -2,37 +2,7 @@ package main
 
 import "math"
 
-func matMul(a, b *Tensor) *Tensor {
-	m := a.Shape[0]
-	n := b.Shape[1]
-	k := b.Shape[0]
-
-	data := make([]float32, m*n)
-	for i := 0; i < m; i++ {
-		for l := 0; l < k; l++ {
-			aVal := a.Data[i*k+l]
-			for j := 0; j < n; j++ {
-				data[i*n+j] += aVal * b.Data[l*n+j]
-			}
-		}
-	}
-	return &Tensor{Shape: []int{m, n}, Data: data}
-}
-
-func add(a, b *Tensor) *Tensor {
-	m := a.Shape[0]
-	n := a.Shape[1]
-
-	data := make([]float32, m*n)
-	for i := 0; i < m; i++ {
-		for j := 0; j < n; j++ {
-			data[i*n+j] = a.Data[i*n+j] + b.Data[j]
-		}
-	}
-	return &Tensor{Shape: []int{m, n}, Data: data}
-}
-
-func Dense(input, weight, bias *Tensor) *Tensor {
+func dense(input, weight, bias *Tensor) *Tensor {
 	m := input.Shape[0]
 	k := input.Shape[1]
 	n := weight.Shape[1]
@@ -66,7 +36,6 @@ func relu(a *Tensor) *Tensor {
 func softmax(a *Tensor) *Tensor {
 	n := a.Shape[1]
 	data := make([]float32, n)
-	//finding max
 	maxVal := a.Data[0]
 	for _, val := range a.Data {
 		if val > maxVal {

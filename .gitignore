@@ -1,11 +1,9 @@
 # Binaries
 *.exe
-*.exe~
 *.dll
 *.so
 *.dylib
 gopherRT
-gopherRT.exe
 
 # Test binary, built with `go test -c`
 *.test
@@ -18,31 +16,18 @@ go.work
 
 # Environment files
 .env
-.env.local
-.env.*.local
+.env.*
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
 *~
 
 # macOS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
 
-# ONNX model files (can be large, regenerate or download as needed)
-mnist.onnx
-
-# data files
+# MNIST dataset (large, downloaded on demand)
 /data
-
 
 # Temporary files
 tmp/
