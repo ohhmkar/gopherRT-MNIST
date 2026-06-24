@@ -1,8 +1,8 @@
 # gopherRT
 
-From-scratch ONNX inference engine for MNIST, written in Go. No CGO, no ONNX Runtime, no external ML libraries.
+From-scratch ONNX inference engine for MNIST, written in Go. No CGO, no ONNX Runtime
 
-## Model
+### Model
 
 A 3-layer MLP with ReLU activations and a softmax output layer:
 
@@ -26,12 +26,12 @@ On first run the dataset is fetched and cached in `data/`. The model file `mnist
 
 ## Performance
 
-| Metric | Value |
-|--------|-------|
-| Accuracy (10k test images) | 97.41% |
-| Total inference time | 98 ms |
-| Throughput | ~102,000 images/sec |
-| Hardware | Apple M-series (8 cores) |
+| Metric                     | Value                  |
+| -------------------------- | ---------------------- |
+| Accuracy (10k test images) | 97.41%                 |
+| Total inference time       | 98 ms                  |
+| Throughput                 | ~102,000 images/sec    |
+| Hardware                   | Apple M4 Air (8 cores) |
 
 Inference is parallelized across all available CPU cores using goroutines. Each image is processed independently with no batching.
 
